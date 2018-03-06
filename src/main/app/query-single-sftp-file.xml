@@ -41,9 +41,6 @@ http://www.mulesoft.org/schema/mule/mulerequester http://www.mulesoft.org/schema
 		</component>
 		<object-to-string-transformer doc:name="Transform read file to String" />
 		<logger level="INFO" message="File contents: #[payload]" doc:name="Log file contents" />
-		
     </flow>
-    
-<!--     <mulerequester:request resource="QuerySingleFileEndpoint" doc:name="Mule Requester"/> -->
 
 </mule>
