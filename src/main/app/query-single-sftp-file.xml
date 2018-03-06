@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mulerequester="http://www.mulesoft.org/schema/mule/mulerequester" xmlns:context="http://www.springframework.org/schema/context" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mulerequester http://www.mulesoft.org/schema/mule/mulerequester/current/mule-mulerequester.xsd">
+
+    <!-- Global Elements -->
+
+    <spring:beans>
+	    <context:property-placeholder location="classpath:sftp.properties" />
+    </spring:beans>
+
+    <sftp:connector name="SftpConnector" archiveDir="${sftp.archiveDir}" doc:name="SFTP"/>
+    
+    <sftp:endpoint name="QuerySingleFileEndpoint" host="${sftp.host}" port="${sftp.port}" autoDelete="true"
+            connector-ref="SftpConnector" user="${sftp.username}" password="${sftp.password}"
+            path="${sftp.path}" doc:name="SFTP"/>
+    
+    <!-- Flows -->
+    
+    <flow name="read-sftp-files-flow" initialState="started">
+		<sftp:inbound-endpoint host="${sftp.host}" port="${sftp.port}" doc:name="Read INSTRUCT files"
+			connector-ref="SftpConnector" user="${sftp.username}" password="${sftp.password}"
+			path="${sftp.path}" pollingFrequency="${sftp.pollingFrequency:10000}">
+		    <file:filename-wildcard-filter pattern="*.instruct" caseSensitive="true"/>	
+		</sftp:inbound-endpoint>
+		<object-to-string-transformer doc:name="Transform INSTRUCT file to String" />
+		
+		<splitter expression="#[payload.split('\n')]" doc:name="Split file line by line"/>
+		
+		<logger level="INFO" message="File to read from SFTP is: #[payload]" doc:name="Log files to read" />
+		<set-variable variableName="fileName" value="#[payload]" doc:name="Set fileName flowVar" />
+		<component doc:name="Query Single File">
+		    <singleton-object class="com.ricston.blogs.QuerySingleFileProcessor" />
+		</component>
+		<object-to-string-transformer doc:name="Transform read file to String" />
+		<logger level="INFO" message="File contents: #[payload]" doc:name="Log file contents" />
+		
+    </flow>
+    
+<!--     <mulerequester:request resource="QuerySingleFileEndpoint" doc:name="Mule Requester"/> -->
+
+</mule>

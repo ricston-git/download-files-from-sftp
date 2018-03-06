@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  sftp:
+    image: atmoz/sftp
+    volumes:
+      - ./sftp:/home/ricstonblog
+    ports:
+      - "22:22"
+    command: ricstonblog:ricstonblog
